@@ -19,6 +19,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.Instant;
 import java.util.List;
@@ -152,6 +155,19 @@ public class AuthenticationService {
                 existingToken.setLoggedOut(true);
                 tokenRepository.save(existingToken);
             }
+        }
+    }
+
+
+    public ResponseEntity<Boolean> validateToken(String token) {
+        try {
+            String username = jwtService.extractUsername(token);
+            User user = repository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("test"));
+            boolean isValid = jwtService.isValid(token, user);
+            return ResponseEntity.ok(isValid);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
         }
     }
 }
